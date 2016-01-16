@@ -1,0 +1,24 @@
+TARGETNAME=dtrace
+TARGETPATH=..\..\bin
+TARGETTYPE=EXPORT_DRIVER
+
+MSC_WARNING_LEVEL= /W1
+DEFINES=
+
+INCLUDES= ..\..
+TARGETLIBS=$(DDK_LIB_PATH)\aux_klib.lib
+C_DEFINES=$(C_DEFINES) -D__x86 -DKERNEL 
+
+!if $(AMD64)
+C_DEFINES=$(C_DEFINES) -D__amd64 -Dwindows -D__amd64__ -DDBG 
+DLLDEF=dtrace_64.def
+!else
+C_DEFINES=$(C_DEFINES) -D__i386 -Dwindows -D__i386__ -DDBG
+DLLDEF=dtrace_i386.def
+!endif	
+
+
+SOURCES=dtrace.c dtrace_isa.c dtrace_subr.c dtrace_win32.c blist.c driver.c misc.c hook.c dis_tables.c instr_size.c apple_port.c 
+
+i386_SOURCES=hack_i386.c
+amd64_SOURCES=hack_amd64.c

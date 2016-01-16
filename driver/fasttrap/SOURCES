@@ -1,0 +1,18 @@
+TARGETNAME=fasttrap
+TARGETTYPE=DRIVER
+TARGETPATH=..\..\bin
+
+INCLUDES=..\dtrace;..\..
+!if $(AMD64)
+TARGETLIBS=..\..\bin\amd64\dtrace.lib
+C_DEFINES=$(C_DEFINES) -D__amd64 -Dwindows -D__amd64__
+!elseif $(386)
+TARGETLIBS=..\..\bin\i386\dtrace.lib
+C_DEFINES=$(C_DEFINES) -D__i386 -Dwindows -D__i386__
+!endif	
+MSC_WARNING_LEVEL= /W1
+
+
+SOURCES=fasttrap.c fasttrap_isa.c fasttrap_win32.c 
+amd64_SOURCES=fasttrap_int64.asm
+i386_SOURCES=fasttrap_int32.c

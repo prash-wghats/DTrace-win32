@@ -1,0 +1,14 @@
+#usdt example for msvc. link option /incremental:no is REQUIRED
+# Makefile.drti_msvc
+# dtrace -s dprov.d -c usdt.exe 
+
+usdt.exe: prov.o usdt.obj
+	cl /Zi usdt.obj prov.o /link /incremental:no
+
+prov.o: prov.d usdt.obj
+	dtrace -C -G -o prov.o -s prov.d usdt.obj
+usdt.obj: usdt.c
+	cl /Zi /I ..\ /c usdt.c
+
+clean:
+	-del  prov.o usdt.obj usdt.exe

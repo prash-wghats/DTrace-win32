@@ -1,0 +1,27 @@
+;pe library
+EXPORTS
+	pe_delete_rel
+	pe_end
+	pe_errmsg
+	pe_getsymbyname
+	pe_getarch
+	pe_getflhdr
+	pe_getrel
+	pe_getscn
+	pe_getscnhdr
+	pe_getscnname
+	pe_getscnnamescn
+	pe_getsecnofromaddr
+	pe_getsecva
+	pe_getstrtab
+	pe_getsym
+	pe_getsymarr
+	pe_getsymname
+	pe_getsymtab
+	pe_gettype
+	pe_init
+	pe_update
+	pe_update_flhdr
+	pe_update_rel
+	pe_update_scnhdr
+	pe_update_sym

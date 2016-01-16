@@ -1,0 +1,62 @@
+
+#!include <win32.mak>
+
+INCLUDES=/I..\include /I.
+!IF "$(PROCESSOR_ARCHITECTURE)" == "x86"
+ARCH=/D__i386__
+INST_LIB_DIR=..\lib\i386
+INST_EXE_DIR=..\bin\i386
+ODIR = i386
+!ELSE
+INST_LIB_DIR=..\lib\amd64
+INST_EXE_DIR=..\bin\amd64
+ARCH=/D__amd64__
+ODIR = amd64
+!ENDIF
+
+TOP = .
+
+STATICLIB=libpe.lib
+SHAREDLIB=libpe.dll 
+IMPLIB=libpedll.lib
+DEF=libpe.def
+EXP=libpedll.exp
+PDB=libpe.pdb
+
+CC = cl
+AS = ml
+LD = link
+AR = lib
+RC = rc
+CFLAGS  = -nologo -W1 -O2 -Zi -I. -I..\include $(ARCH) -D_CRT_SECURE_NO_WARNINGS /MT
+WFLAGS  = -D_CRT_SECURE_NO_DEPRECATE -DD_CRT_SECURE_NO_WARNINGS
+ASFLAGS = -coff -Zi
+LDFLAGS = -nologo -debug -incremental:no /fixed:no /LIBPATH:$(INST_LIB_DIR)
+ARFLAGS = -nologo
+
+
+OBJS = $(ODIR)/libpe.obj
+OBJA =
+
+all: $(INST_LIB_DIR)/$(STATICLIB) $(INST_EXE_DIR)/$(SHAREDLIB) $(INST_LIB_DIR)/$(IMPLIB)
+
+$(INST_LIB_DIR)/$(STATICLIB): $(OBJS) $(OBJA)
+	$(AR) $(ARFLAGS) -out:$@ $(OBJS) $(OBJA)
+
+$(INST_LIB_DIR)/$(IMPLIB): $(INST_EXE_DIR)/$(SHAREDLIB)
+
+$(INST_EXE_DIR)/$(SHAREDLIB): $(OBJS) $(OBJA)
+	$(LD) $(LDFLAGS)  -def:$(DEF) -dll -implib:$(INST_LIB_DIR)/$(IMPLIB) \
+	  -out:$@  $(OBJS) $(OBJA) 
+	  
+{$(TOP)}.c.obj:
+	$(CC)  $(ARCH_FLAGS) $(CFLAGS) /Fo$(ODIR)\ /c $<
+	
+clean:
+	-del $(INST_LIB_DIR)\$(STATICLIB)
+	-del $(INST_EXE_DIR)\$(SHAREDLIB)
+	-del $(INST_LIB_DIR)\$(IMPLIB)
+	-del $(ODIR)\*.obj
+	-del $(INST_LIB_DIR)\$(EXP)
+	-del $(INST_EXE_DIR)\$(PDB)
+	-del $(INST_EXE_DIR)\$(SHAREDLIB).manifest

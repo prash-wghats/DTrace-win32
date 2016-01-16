@@ -1,0 +1,105 @@
+INCLUDES = ../include -I ../driver/dtrace -I ../ -I . 
+CFLAGS = -g -DLIBDTRACE_EXPORTS -I $(INCLUDES) -Dwindows
+CC = gcc
+DISFLAGS = -I ../driver
+
+ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+ARCH_FLAGS = -m64
+ODIR = amd64
+INST_LIB_DIR=../lib/amd64
+INST_EXE_DIR=../bin/amd64
+RCFLAGS = --target=pe-x86-64
+else
+ifndef PROCESSOR_ARCHITEW6432
+ARCH_FLAGS = -m32
+ODIR = i386
+INST_LIB_DIR=../lib/i386
+INST_EXE_DIR=../bin/i386
+RCFLAGS = --target=pe-i386
+else
+ARCH_FLAGS = -m64
+ODIR = amd64
+INST_LIB_DIR=../lib/amd64
+INST_EXE_DIR=../bin/amd64
+RCFLAGS = --target=pe-x86-64
+endif
+endif
+
+STATICLIB = libdtrace.a
+DYNAMICLIB = libdtrace.dll
+IMPLIB = libdtracedll.a
+DEF = libdtrace.def
+
+STATIC_LIBS = -L $(INST_LIB_DIR) -lproc -lctf  
+DYNAMIC_LIBS = -L $(INST_LIB_DIR) -lprocdll -lctf -lpe
+
+OBJS = $(ODIR)/dt_aggregate.o \
+	 $(ODIR)/dt_as.o \
+	 $(ODIR)/dt_buf.o \
+	 $(ODIR)/dt_cc.o \
+	 $(ODIR)/dt_cg.o \
+	 $(ODIR)/dt_consume.o \
+	 $(ODIR)/dt_decl.o \
+	 $(ODIR)/dt_dis.o \
+	 $(ODIR)/dt_dof.o \
+	 $(ODIR)/dt_error.o \
+	 $(ODIR)/dt_errtags.o \
+	 $(ODIR)/dt_grammar.o \
+	 $(ODIR)/dt_handle.o \
+	 $(ODIR)/dt_ident.o \
+	 $(ODIR)/dt_inttab.o \
+	 $(ODIR)/dt_isadep.o \
+	 $(ODIR)/dt_lex.o \
+	 $(ODIR)/dt_link_win.o \
+	 $(ODIR)/dt_list.o \
+	 $(ODIR)/dt_map.o \
+	 $(ODIR)/dt_module.o \
+	 $(ODIR)/dt_names.o \
+	 $(ODIR)/dt_open.o \
+	 $(ODIR)/dt_options.o \
+	 $(ODIR)/dt_parser.o \
+	 $(ODIR)/dt_pcb.o \
+	 $(ODIR)/dt_pid.o \
+	 $(ODIR)/dt_pq.o \
+	 $(ODIR)/dt_pragma.o \
+	 $(ODIR)/dt_print.o \
+	 $(ODIR)/dt_printf.o \
+	 $(ODIR)/dt_proc.o \
+	 $(ODIR)/dt_program.o \
+	 $(ODIR)/dt_provider.o \
+	 $(ODIR)/dt_regset.o \
+	 $(ODIR)/dt_string.o \
+	 $(ODIR)/dt_strtab.o \
+	 $(ODIR)/dt_subr.o \
+	 $(ODIR)/dt_work.o \
+	 $(ODIR)/dt_xlator.o \
+	 $(ODIR)/gmatch.o \
+	 $(ODIR)/misc.o \
+	 $(ODIR)/dis_tables.o #\
+#	 $(ODIR)/libpe.o
+	 
+all: $(INST_LIB_DIR)/$(STATICLIB) $(INST_EXE_DIR)/$(DYNAMICLIB) $(INST_LIB_DIR)/$(IMPLIB)
+
+$(INST_LIB_DIR)/$(STATICLIB): $(OBJS)
+	rm -f $@
+	ar rc $(RCFLAGS) $@ $(OBJS)
+	ranlib $@
+
+$(INST_LIB_DIR)/$(IMPLIB): $(INST_EXE_DIR)/$(DYNAMICLIB)
+
+$(INST_EXE_DIR)/$(DYNAMICLIB): $(OBJS) 
+	rm -f $@
+	$(CC) $(ARCH_FLAGS) -shared -Wl,--out-implib,$(INST_LIB_DIR)/$(IMPLIB) $(LDFLAGS) \
+	-o $@ $(DEF) $(OBJS) $(DYNAMIC_LIBS) -mwindows -ldbghelp -lpsapi -lz -lpthreadGC2
+
+$(ODIR)/%.o: %.c dt_impl.h
+	$(CC) -c $(ARCH_FLAGS) $(CFLAGS) $< -o $@
+	
+$(ODIR)/dis_tables.o: ../driver/dtrace/dis_tables.c ../driver/dtrace/dis_tables.h
+	$(CC) -c $(ARCH_FLAGS) $(CFLAGS) $(DISFLAGS) -o $@ $<
+
+#$(ODIR)/libpe.o: ../libpe/libpe.c ../libpe/libpe.h
+#	$(CC) -c $(ARCH_FLAGS) $(CFLAGS) $(DISFLAGS) -o $@ $<
+	
+clean:
+	rm $(ODIR)/*.o $(INST_LIB_DIR)/$(STATICLIB) $(INST_LIB_DIR)/$(IMPLIB) $(INST_EXE_DIR)/$(DYNAMICLIB)

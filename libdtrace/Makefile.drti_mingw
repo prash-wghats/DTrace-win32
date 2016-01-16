@@ -1,0 +1,32 @@
+INCLUDES = ../include -I ../driver -I ../ -I . 
+CFLAGS = -g  -I $(INCLUDES)
+CC = gcc
+DISFLAGS = -I ../driver
+
+ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+ARCH_FLAGS = -m64
+ODIR = amd64
+INST_LIB_DIR=c:/dtrace/lib/amd64
+RCFLAGS = --target=pe-x86-64
+else
+ifndef PROCESSOR_ARCHITEW6432
+ARCH_FLAGS = -m32
+ODIR = i386
+INST_LIB_DIR=c:/dtrace/lib/i386
+RCFLAGS = --target=pe-i386
+else
+ARCH_FLAGS = -m64
+ODIR = amd64
+INST_LIB_DIR=c:/dtrace/lib/amd64
+RCFLAGS = --target=pe-x86-64
+endif
+endif
+
+DRTI = drti.o
+
+all: $(INST_LIB_DIR)/$(DRTI)
+	
+$(INST_LIB_DIR)/$(DRTI): drti.c
+	gcc $(ARCH_FLAGS) $(CFLAGS) -o $@ -c drti.c	
+clean:
+	rm $(INST_LIB_DIR)/$(DRTI)

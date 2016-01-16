@@ -1,0 +1,23 @@
+
+all:
+	cd libctf; \
+	make -f Makefile.mingw; \
+	cd ../libpe; \
+	make -f Makefile.mingw; \
+	cd ../libproc; \
+	make -f Makefile.mingw; \
+	cd ../libdtrace; \
+	make -f Makefile.mingw; \
+	cd ../dtrace; \
+	make -f Makefile.mingw
+clean:
+	cd libctf; \
+	make -f Makefile.mingw clean; \
+	cd ../libpe; \
+	make -f Makefile.mingw clean; \
+	cd ../libproc; \
+	make -f Makefile.mingw clean; \
+	cd ../libdtrace; \
+	make -f Makefile.mingw clean; \
+	cd ../dtrace; \
+	make -f Makefile.mingw clean

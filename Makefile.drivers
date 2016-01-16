@@ -1,0 +1,19 @@
+
+all:	
+	cd driver\dtrace
+	build
+	cd ..\profile
+	build
+	cd ..\fbt
+	build
+	cd ..\fasttrap
+	build
+clean:
+	cd driver\dtrace
+	build -c0
+	cd ..\profile
+	build -c0
+	cd ..\fbt
+	build -c0
+	cd ..\fasttrap
+	build -c0

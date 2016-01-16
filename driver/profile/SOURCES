@@ -1,0 +1,16 @@
+TARGETNAME=profile
+TARGETTYPE=DRIVER
+TARGETPATH=..\..\bin
+
+INCLUDES=..\dtrace;..\..
+!if $(386)
+TARGETLIBS=..\..\bin\i386\dtrace.lib
+C_DEFINES=$(C_DEFINES) -D__i386 -Dwindows -D__i386__
+!elseif $(AMD64)
+TARGETLIBS=..\..\bin\amd64\dtrace.lib
+C_DEFINES=$(C_DEFINES) -D__amd64 -Dwindows -D__amd64__
+!endif
+MSC_WARNING_LEVEL= /W1
+DEFINES=
+
+SOURCES=profile.c cyclic.c strcasecmp.c

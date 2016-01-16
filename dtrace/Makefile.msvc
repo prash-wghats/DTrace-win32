@@ -1,0 +1,54 @@
+
+#!include <win32.mak>
+
+INCLUDES=/I..\include /I.
+!IF "$(PROCESSOR_ARCHITECTURE)" == "x86"
+ARCH=/D__i386__
+INST_LIB_DIR=..\lib\i386
+INST_EXE_DIR=..\bin\i386
+ODIR = i386
+!ELSE
+INST_LIB_DIR=..\lib\amd64
+INST_EXE_DIR=..\bin\amd64
+ARCH=/D__amd64__
+ODIR = amd64
+!ENDIF
+
+TOP = .
+
+EXE=dtrace.exe
+PDB=dtrace.pdb
+
+CC = cl
+AS = ml
+LD = link
+AR = lib
+RC = rc
+CFLAGS  = -nologo -W1 -O2 -Zi -I. -I..\include -I..\ $(ARCH) -D_CRT_SECURE_NO_WARNINGS /MT
+WFLAGS  = -D_CRT_SECURE_NO_DEPRECATE -DD_CRT_SECURE_NO_WARNINGS
+ASFLAGS = -coff -Zi
+LDFLAGS = -nologo -debug -incremental:no /fixed:no /subsystem:console /LIBPATH:$(INST_LIB_DIR)  #/NODEFAULTLIB:libcmt 
+ARFLAGS = -nologo
+
+
+OBJS = $(ODIR)/dtrace.obj $(ODIR)/getopt.obj
+
+OBJA =
+
+STATIC_LIBS =  libproc.lib libctf.lib libdtrace.lib libpe.lib
+DYNAMIC_LIBS = libprocdll.lib libctf.lib libdtracedll.lib
+
+all: $(INST_EXE_DIR)/$(EXE)
+
+$(INST_EXE_DIR)/$(EXE): $(OBJS)
+	$(LD) $(LDFLAGS) /out:$(INST_EXE_DIR)/$(EXE) $(OBJS)  $(STATIC_LIBS) dbghelp.lib psapi.lib advapi32.lib \
+		pthreadVC2.lib zlib.lib
+		
+{$(TOP)}.c.obj:
+	$(CC)  $(ARCH_FLAGS) $(CFLAGS) /Fo$(ODIR)\ /c $<
+	
+clean:
+	-del $(INST_EXE_DIR)\$(EXE)
+	-del $(ODIR)\*.obj
+	-del $(INST_EXE_DIR)\$(PDB)
+	-del $(INST_EXE_DIR)\$(EXE).manifest

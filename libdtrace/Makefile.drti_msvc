@@ -1,0 +1,39 @@
+
+#!include <win32.mak>
+
+INCLUDES=/I..\include /I. /I..\driver /I..\
+
+!IF "$(PROCESSOR_ARCHITECTURE)" == "x86"
+ARCH=/D__i386__ /DYY_NO_UNISTD_H
+ODIR = i386
+INST_LIB_DIR=c:\dtrace\lib\i386
+!ELSE
+INST_LIB_DIR=c:\dtrace\lib\amd64
+ARCH=/D__amd64__ /DYY_NO_UNISTD_H
+ODIR = amd64
+!ENDIF
+
+TOP = .
+
+DRTI=drti.o
+
+CC = cl
+AS = ml
+LD = link
+AR = lib
+RC = rc
+CFLAGS  = -nologo -W1 -O2 -Zi $(INCLUDES) $(ARCH) -D_CRT_SECURE_NO_WARNINGS -DLIBDTRACE_EXPORTS
+WFLAGS  = -D_CRT_SECURE_NO_DEPRECATE -DD_CRT_SECURE_NO_WARNINGS
+ASFLAGS = -coff -Zi
+LDFLAGS = -nologo -debug -incremental:no /fixed:no   /LIBPATH:$(INST_LIB_DIR) #/NODEFAULTLIB:libcmt 
+ARFLAGS = -nologo
+
+
+all: $(INST_LIB_DIR)/$(DRTI)
+	
+$(INST_LIB_DIR)/$(DRTI): drti.c
+	$(CC) -c $(ARCH_FLAGS) $(CFLAGS) /Fo$(INST_LIB_DIR)/$(DRTI) /c drti.c
+clean:
+	-del $(INST_LIB_DIR)\$(DRTI)
+	
+	

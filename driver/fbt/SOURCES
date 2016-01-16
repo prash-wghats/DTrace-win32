@@ -1,0 +1,23 @@
+TARGETNAME=fbt
+TARGETTYPE=DRIVER
+TARGETPATH=..\..\bin
+
+INCLUDES=..\dtrace;..\..
+TARGETLIBS=$(DDK_LIB_PATH)\aux_klib.lib \
+!if $(AMD64)
+!if "$(_BuildType)" == "chk"
+..\..\bin\amd64\dtrace.lib
+!else
+..\..\bin\amd64\dtrace.lib
+!endif
+C_DEFINES=$(C_DEFINES) -D__amd64 -Dwindows -D__amd64__
+!elseif $(386)
+..\..\bin\i386\dtrace.lib
+C_DEFINES=$(C_DEFINES) -D__i386 -Dwindows -D__i386__
+!endif	
+MSC_WARNING_LEVEL= /W1
+
+
+SOURCES=fbt.c fbt_win32.c
+amd64_SOURCES=fbt_int64.asm
+i386_SOURCES=fbt_int32.asm

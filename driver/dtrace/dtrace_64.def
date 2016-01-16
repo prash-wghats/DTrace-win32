@@ -1,0 +1,59 @@
+NAME DTRACE.SYS
+EXPORTS
+	mutex_init
+	mutex_enter
+	mutex_exit
+	mutex_owned
+	copyout
+	copyin
+	copyinstr
+	dtrace_fulword
+	dtrace_fuword32
+	dtrace_hook_int
+	dtrace_instr_size
+	dtrace_instr_size_isa
+	pfind
+	del_proc_node
+	_curproc
+	_curthread
+	fasttrap_pfind
+	readKPCR
+	dtrace_register
+	dtrace_unregister
+	dtrace_condense
+	dtrace_invalidate
+	dtrace_probe_lookup
+	dtrace_probe_create
+	dtrace_probe_arg
+	dtrace_probe
+	dtrace_meta_register
+	dtrace_meta_unregister
+	dtrace_interrupt_disable
+	dtrace_interrupt_enable
+	dtrace_invop
+	dtrace_invop_add
+	dtrace_invop_remove
+	dtrace_attached
+	dtrace_gethrtime
+	dtrace_module_unloaded
+	kmem_alloc
+	kmem_zalloc
+	kmem_free
+	winos_kernel_func_rtf
+	DtraceWinOSDpcStack
+	scr_alloc_mem
+	scr_rel_mem
+	dtrace_helpers_destroy
+	IsDebuggerAttached
+	uread
+	uwrite
+	
+	Hertz DATA
+	CPU DATA
+	cpu_core DATA
+	modules DATA
+	Profile_Stack_Skip_Frames DATA
+	NtReadVirtualMemory DATA
+	NtWriteVirtualMemory DATA
+	NtProtectVirtualMemory DATA
+	

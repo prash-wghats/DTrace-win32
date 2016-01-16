@@ -1,0 +1,44 @@
+
+INCLUDES = -I ../include -I ../  
+CFLAGS = -g -DLIBDTRACE_EXPORTS $(INCLUDES)
+CC = gcc
+
+
+ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+ARCH_FLAGS = -m64
+ODIR = amd64
+INST_LIB_DIR=../lib/amd64
+INST_EXE_DIR=../bin/amd64
+else
+ifndef PROCESSOR_ARCHITEW6432
+ARCH_FLAGS = -m32
+ODIR = i386
+INST_LIB_DIR=../lib/i386
+INST_EXE_DIR=../bin/i386
+else
+ARCH_FLAGS = -m64
+ODIR = amd64
+INST_LIB_DIR=../lib/amd64
+INST_EXE_DIR=../bin/amd64
+endif
+endif
+
+
+SRCS = dtrace.c
+OBJS = $(ODIR)/dtrace.o
+
+
+#STATIC_LIBS = ../libdtrace/i386/libdtrace.a ../ctf/i386/libctf.a ../libproc/i386/libproc.a
+STATIC_LIBS = -L $(INST_LIB_DIR) -lproc -lctf -ldtrace -lpe
+DYNAMIC_LIBS = -L $(INST_LIB_DIR) -lprocdll -lctf -ldtracedll -lpedll
+
+all: $(INST_EXE_DIR)/dtrace
+
+$(INST_EXE_DIR)/dtrace: $(OBJS)
+	$(CC) $(ARCH_FLAGS) -g -o $(INST_EXE_DIR)/dtrace $(ODIR)/dtrace.o $(STATIC_LIBS) -ldbghelp -lpsapi  -lpthreadGC2 -lz 
+	
+$(ODIR)/%.o: %.c
+	$(CC)  $(ARCH_FLAGS) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm $(ODIR)/dtrace.o $(INST_EXE_DIR)/dtrace.exe

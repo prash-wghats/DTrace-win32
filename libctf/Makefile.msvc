@@ -1,0 +1,72 @@
+
+#!include <win32.mak>
+
+INCLUDES=/I..\include /I.
+!IF "$(PROCESSOR_ARCHITECTURE)" == "x86"
+ARCH=/D__i386__
+INST_LIB_DIR=..\lib\i386
+INST_EXE_DIR=..\bin\i386
+ODIR = i386
+!ELSE
+INST_LIB_DIR=..\lib\amd64
+INST_EXE_DIR=..\bin\amd64
+ARCH=/D__amd64__
+ODIR = amd64
+!ENDIF
+
+TOP = .
+
+STATICLIB=libctf.lib
+SHAREDLIB=libctf.dll 
+IMPLIB=libctfdll.lib
+DEF=libctf.def
+EXP=libctfdll.exp
+PDB=libctf.pdb
+
+CC = cl
+AS = ml
+LD = link
+AR = lib
+RC = rc
+CFLAGS  = -nologo -W1 -O2 -Zi -I. -I..\include -I..\ $(ARCH) -D_CRT_SECURE_NO_WARNINGS -Dwindows /MT
+WFLAGS  = -D_CRT_SECURE_NO_DEPRECATE -DD_CRT_SECURE_NO_WARNINGS
+ASFLAGS = -coff -Zi
+LDFLAGS = -nologo -debug -incremental:no /fixed:no /LIBPATH:$(INST_LIB_DIR)
+ARFLAGS = -nologo
+
+
+OBJS = $(ODIR)\ctf_create.obj \
+	 $(ODIR)\ctf_decl.obj \
+	 $(ODIR)\ctf_error.obj \
+	 $(ODIR)\ctf_hash.obj \
+	 $(ODIR)\ctf_labels.obj \
+	 $(ODIR)\ctf_lib.obj \
+	 $(ODIR)\ctf_lookup.obj \
+	 $(ODIR)\ctf_open.obj \
+	 $(ODIR)\ctf_subr.obj \
+	 $(ODIR)\ctf_types.obj \
+	 $(ODIR)\ctf_util.obj 
+OBJA =
+
+
+all: $(INST_LIB_DIR)/$(STATICLIB) 
+
+$(INST_LIB_DIR)/$(STATICLIB): $(OBJS) $(OBJA)
+	$(AR) $(ARFLAGS) -out:$@ $(OBJS) $(OBJA)
+
+$(INST_LIB_DIR)/$(IMPLIB): $(INST_EXE_DIR)/$(SHAREDLIB)
+
+$(INST_EXE_DIR)/$(SHAREDLIB): $(OBJS) $(OBJA)
+	$(LD) $(LDFLAGS)  -dll -implib:$(INST_LIB_DIR)/$(IMPLIB) \
+	  -out:$@  $(OBJS) $(OBJA) zlib.lib
+{$(TOP)}.c.obj:
+	$(CC)  $(ARCH_FLAGS) $(CFLAGS) /Fo$(ODIR)\ /c $<
+	
+clean:
+	-del $(INST_LIB_DIR)\$(STATICLIB)
+	-del $(INST_EXE_DIR)\$(SHAREDLIB)
+	-del $(INST_LIB_DIR)\$(IMPLIB)
+	-del $(ODIR)\*.obj
+	-del $(INST_LIB_DIR)\$(EXP)
+	-del $(INST_EXE_DIR)\$(PDB)
+	-del $(INST_EXE_DIR)\$(SHAREDLIB).manifest

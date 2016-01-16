@@ -1,0 +1,14 @@
+#usdt example for gcc. compiled using gcc tdm 5.1
+# Makefile.drti_mingw
+# dtrace -s dprov.d -c usdt32.exe 
+usdt32: prov.o usdt.o
+	gcc -m32 -Wall -o $@ usdt.o prov.o 
+
+prov.o: prov.d usdt.o
+	dtrace -32 -C -G -o $@ -s prov.d usdt.o
+
+usdt.o: usdt.c
+	gcc -m32 -Wall -I ../ -o $@ -c usdt.c
+
+clean:
+	rm -f prov.o usdt.o usdt32.exe

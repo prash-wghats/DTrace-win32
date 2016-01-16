@@ -1,0 +1,57 @@
+INCLUDES = ../include -I ../ -I . 
+CFLAGS = -Wall -g -I $(INCLUDES)
+CC = gcc
+
+
+ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+ARCH_FLAGS =-m64 -D__amd64__
+ODIR = amd64
+INST_LIB_DIR=../lib/amd64
+INST_EXE_DIR=../bin/amd64
+RCFLAGS = --target=pe-x86-64
+else
+ifndef PROCESSOR_ARCHITEW6432
+ARCH_FLAGS =-m32 -D__i386__
+ODIR = i386
+INST_LIB_DIR=../lib/i386
+INST_EXE_DIR=../bin/i386
+RCFLAGS = --target=pe-i386
+else
+ARCH_FLAGS = -m64
+ODIR = amd64
+INST_LIB_DIR=../lib/amd64
+INST_EXE_DIR=../bin/amd64
+RCFLAGS = --target=pe-x86-64
+endif
+endif
+
+STATICLIB = libproc.a
+DYNAMICLIB = libproc.dll
+IMPLIB = libprocdll.a
+DEF = libproc.def
+
+STATIC_LIBS = -L $(INST_LIB_DIR) 
+DYNAMIC_LIBS = -L $(INST_LIB_DIR) -lpe
+
+SRCS = libproc.c
+
+OBJS = $(ODIR)/libproc.o
+
+all: $(INST_LIB_DIR)/$(STATICLIB) $(INST_EXE_DIR)/$(DYNAMICLIB) $(INST_LIB_DIR)/$(IMPLIB)
+
+$(INST_LIB_DIR)/$(STATICLIB): $(OBJS)
+	rm -f $@
+	ar rc $(RCFLAGS) $@ $(OBJS)
+	ranlib $@
+
+$(INST_LIB_DIR)/$(IMPLIB): $(INST_EXE_DIR)/$(DYNAMICLIB)
+
+$(INST_EXE_DIR)/$(DYNAMICLIB): $(OBJS) 
+	$(CC) $(ARCH_FLAGS) -shared -Wl,--out-implib,$(INST_LIB_DIR)/$(IMPLIB) $(LDFLAGS) \
+	-o $@ $(DEF) $(OBJS) $(DYNAMIC_LIBS) -ldbghelp -lpsapi -lpthreadGC2
+
+$(ODIR)/libproc.o: libproc.c libproc_win.h ../include/libproc.h
+	$(CC) -c $(ARCH_FLAGS) $(CFLAGS) -o $@ $<
+
+clean:
+	rm $(ODIR)/*.o $(INST_LIB_DIR)/$(STATICLIB) $(INST_LIB_DIR)/$(IMPLIB) $(INST_EXE_DIR)/$(DYNAMICLIB)

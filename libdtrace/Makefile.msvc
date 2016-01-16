@@ -1,0 +1,111 @@
+
+#!include <win32.mak>
+
+INCLUDES=/I..\include /I. /I..\driver\dtrace /I..\
+
+!IF "$(PROCESSOR_ARCHITECTURE)" == "x86"
+ARCH=/D__i386__ /DYY_NO_UNISTD_H /D__i386
+ODIR = i386
+INST_LIB_DIR=..\lib\i386
+INST_EXE_DIR=..\bin\i386
+!ELSE
+INST_LIB_DIR=..\lib\amd64
+INST_EXE_DIR=..\bin\amd64
+ARCH=/D__amd64__ /DYY_NO_UNISTD_H /D__amd64
+ODIR = amd64
+!ENDIF
+
+TOP = .
+
+STATICLIB=libdtrace.lib
+SHAREDLIB=libdtrace.dll 
+IMPLIB=libdtracedll.lib
+DEF=libdtrace.def
+EXP=libdtracedll.exp
+PDB=libdtrace.pdb
+
+CC = cl
+AS = ml
+LD = link
+AR = lib
+RC = rc
+CFLAGS  = -nologo -W1 -O2 -Zi $(INCLUDES) $(ARCH) -D_CRT_SECURE_NO_WARNINGS -DLIBDTRACE_EXPORTS -Dwindows  /MT
+WFLAGS  = -D_CRT_SECURE_NO_DEPRECATE -DD_CRT_SECURE_NO_WARNINGS
+ASFLAGS = -coff -Zi
+LDFLAGS = -nologo -debug -incremental:no /fixed:no   /LIBPATH:$(INST_LIB_DIR) #/NODEFAULTLIB:libcmt 
+ARFLAGS = -nologo
+
+
+OBJS = $(ODIR)\dis_tables.obj \
+	 $(ODIR)\dt_aggregate.obj \
+	 $(ODIR)\dt_as.obj \
+	 $(ODIR)\dt_buf.obj \
+	 $(ODIR)\dt_cc.obj \
+	 $(ODIR)\dt_cg.obj \
+	 $(ODIR)\dt_consume.obj \
+	 $(ODIR)\dt_decl.obj \
+	 $(ODIR)\dt_dis.obj \
+	 $(ODIR)\dt_dof.obj \
+	 $(ODIR)\dt_error.obj \
+	 $(ODIR)\dt_errtags.obj \
+	 $(ODIR)\dt_grammar.obj \
+	 $(ODIR)\dt_handle.obj \
+	 $(ODIR)\dt_ident.obj \
+	 $(ODIR)\dt_inttab.obj \
+	 $(ODIR)\dt_isadep.obj \
+	 $(ODIR)\dt_lex.obj \
+	 $(ODIR)\dt_link_win.obj \
+	 $(ODIR)\dt_list.obj \
+	 $(ODIR)\dt_map.obj \
+	 $(ODIR)\dt_module.obj \
+	 $(ODIR)\dt_names.obj \
+	 $(ODIR)\dt_open.obj \
+	 $(ODIR)\dt_options.obj \
+	 $(ODIR)\dt_parser.obj \
+	 $(ODIR)\dt_pcb.obj \
+	 $(ODIR)\dt_pid.obj \
+	 $(ODIR)\dt_pq.obj \
+	 $(ODIR)\dt_pragma.obj \
+	 $(ODIR)\dt_print.obj \
+	 $(ODIR)\dt_printf.obj \
+	 $(ODIR)\dt_proc.obj \
+	 $(ODIR)\dt_program.obj \
+	 $(ODIR)\dt_provider.obj \
+	 $(ODIR)\dt_regset.obj \
+	 $(ODIR)\dt_string.obj \
+	 $(ODIR)\dt_strtab.obj \
+	 $(ODIR)\dt_subr.obj \
+	 $(ODIR)\dt_work.obj \
+	 $(ODIR)\dt_xlator.obj \
+	 $(ODIR)\gmatch.obj \
+	 $(ODIR)\misc.obj
+	
+
+OBJA =
+
+all: $(INST_LIB_DIR)/$(STATICLIB) $(INST_EXE_DIR)/$(SHAREDLIB) $(INST_LIB_DIR)/$(IMPLIB)
+
+$(INST_LIB_DIR)/$(STATICLIB): $(OBJS) $(OBJA)
+	$(AR) $(ARFLAGS) -out:$@ $(OBJS) $(OBJA)
+
+$(INST_LIB_DIR)/$(IMPLIB): $(INST_EXE_DIR)/$(SHAREDLIB)
+
+$(INST_EXE_DIR)/$(SHAREDLIB): $(OBJS) $(OBJA)
+	$(LD) $(LDFLAGS)  -def:$(DEF) -dll -implib:$(INST_LIB_DIR)/$(IMPLIB) \
+	  -out:$@  $(OBJS) $(OBJA)  libctf.lib libpe.lib dbghelp.lib psapi.lib advapi32.lib \
+		pthreadVC2.lib zlib.lib libproc.lib
+
+{$(TOP)}.c.obj:
+	$(CC)  $(ARCH_FLAGS) $(CFLAGS) /Fo$(ODIR)\ /c $<
+		
+$(ODIR)/dis_tables.obj: ../driver/dtrace/dis_tables.c ../driver/dtrace/dis_tables.h
+	$(CC) -c $(ARCH_FLAGS) $(CFLAGS) /Fo$(ODIR)\ /c ../driver/dtrace/dis_tables.c 
+	
+clean:
+	-del $(INST_LIB_DIR)\$(STATICLIB)
+	-del $(INST_EXE_DIR)\$(SHAREDLIB)
+	-del $(INST_LIB_DIR)\$(IMPLIB)
+	-del $(ODIR)\*.obj
+	-del $(INST_LIB_DIR)\$(EXP)
+	-del $(INST_EXE_DIR)\$(PDB)
+	-del $(INST_EXE_DIR)\$(SHAREDLIB).manifest
