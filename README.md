@@ -14,8 +14,8 @@ OS to crash!.
 
 Windows 64 bit:
 example:
->Bcdedit /debug ON
->Bcdedit /dbgsettings SERIAL DEBUGPORT:1 BAUDRATE:115200
+Bcdedit /debug ON
+Bcdedit /dbgsettings SERIAL DEBUGPORT:1 BAUDRATE:115200
 Restart with kernel debugger (windbg /kd ) attached to OS.
 
 On 64 bit system the drivers need to be signed.To the load the drivers, either 
@@ -45,7 +45,7 @@ DTrace for windows uses dbghelp.dll extensively.To get Symbol information,
 set _NT_SYMBOL_PATH to point to microsoft symbol server to get the pdb files 
 for system dll and drivers.
 example:
-> SET _NT_SYMBOL_PATH=srv*c:\Symbols*http://msdl.microsoft.com/download/symbols;
+ SET _NT_SYMBOL_PATH=srv*c:\Symbols*http://msdl.microsoft.com/download/symbols;
 	E:\prash\dtrace\bin\i386;E:\prash\dtrace\bin\amd64
 
 if not it will use only exported functions in modules.
