@@ -6,7 +6,8 @@ dont use it on a production system.
 This port is based on FreeBSD port of DTrace.Some of the functions have 
 been ported from MacOS port. Non Portable(HACKS) have been mostly grouped in 
 hack_i386.c & hack_amd64.c files.
- 
+The port began after reading about Johannes Passing's ntrace. 
+
 Works best on 32 bit Windows sytem.
 On 64 bit WinOS because of PatchGuard only way of testing is by attaching 
 kernel debugger to the OS. If not, fasttrap.sys or fbt.sys will cause the
