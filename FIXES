@@ -1,0 +1,4 @@
+
+7/2/2016:
+	bug fixes in internal memory allocator and in amd64 user mode 
+	stack trace functions.

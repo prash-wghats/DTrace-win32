@@ -707,6 +707,14 @@ static void free(void *blk)
  * The C Programming Language - BWK, DMR
  * page 164 - 8.7 Example - A Storage Allocator
  */
+typedef union header Header;
+
+typedef struct alloc_list {
+	PVOID mem;
+	struct alloc_list *next;
+} alloc_list_t;
+
+static alloc_list_t *exalloc_list = NULL;
 
 typedef long Align; /* for alignment to long boundary */
 union header { /* block header */
@@ -760,7 +768,7 @@ void int_morecore()
 	
 	Header *p, *prevp;
 	unsigned nunits, nu;
-	
+	alloc_list_t *ex;
 	
 	nu = NALLOC;
 		
@@ -780,6 +788,16 @@ void int_morecore()
 				up = (Header *) cp;
 				up->s.size = nunits;
 				int_free((void *)(up+1));
+				ex = ExAllocatePoolWithTag(NonPagedPool, sizeof(alloc_list_t), 'Tag1');
+				if (ex != NULL) {
+					ex->mem = cp;
+					if (exalloc_list)
+						exalloc_list = ex;
+					else {
+						ex->next = exalloc_list;
+						exalloc_list = ex;
+					}
+				}
 			}
 			return;
 		}	
@@ -788,12 +806,14 @@ void int_morecore()
 
 void int_freecore()
 {
-	Header *bp, *tmp;
-	bp = base.s.ptr;
+	alloc_list_t *ex, *tmp;
 	
-	while (bp != &base) {
-		tmp = bp;
-		bp = bp->s.ptr;
+	ex = exalloc_list;
+	
+	while (ex != NULL) {
+		tmp = ex;
+		ex = ex->next;
+		ExFreePoolWithTag(tmp->mem, 'Tag1');
 		ExFreePoolWithTag(tmp, 'Tag1');
 	}
 }

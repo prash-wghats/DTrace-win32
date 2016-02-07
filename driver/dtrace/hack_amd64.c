@@ -401,7 +401,7 @@ rtf_t *winos_user_func_rtf(dtrace_user_module_t *ctl, uintptr_t pc)
 			low = mid + 1;
 		else {
 			if (lrtf->unwnd_addr & 1) {
-				lrtf = (rtf_t *) (lrtf->unwnd_addr + ctl->imgbase - 1);
+				lrtf = (rtf_t *) (lrtf->unwnd_addr + ctl->buf - 1);
 			}
 			return lrtf;
 		}
@@ -448,20 +448,25 @@ int winos_unwind_user_stack(CONTEXT *ct, int frame, uintptr_t out)
 		*tmp++ = pc;
 		inst = (UCHAR *) pc;
 		
+		if (!MmIsAddressValid((PVOID) pc)) {
+			return f - frame;
+		}
+		
 		ctl = winos_find_user_module(pc);
 		if (ctl == NULL) {
 			return f-frame;
 		}
+		
 		imgbase = ctl->imgbase;
 		
 		rtf = winos_user_func_rtf(ctl, pc);
-
+		
 		if (rtf == NULL ) {
 			return f - frame;
 		}	
-		
+				
 		offset = pc - (imgbase + rtf->baddr);
-		info = (unwind_info_t *) (imgbase + rtf->unwnd_addr);
+		info = (unwind_info_t *) (ctl->buf + rtf->unwnd_addr);
 		/* Rip already in Epilog */
 		if (offset > info->pro_size) {
 			if (inst[0] == REX_W ) {
@@ -566,14 +571,20 @@ chain:		i = 0;
 				case UWOP_SAVE_NONVOL:
 					size = 8 *  *((USHORT *) &info->code[i+1]);
 					addr = (ULONG64 *) (base + size);
-					reg[code.op_info] = *addr;
+					//reg[code.op_info] = *addr;
+					if ((reg[code.op_info] =  fuword64((void *) addr)) == -1) {
+						goto user_ret;
+					}
 					i += 2;
 					break;
 				case UWOP_SAVE_NONVOL_FAR:
 				
 					size = *((ULONG *) &info->code[i+1]);
 					addr = (ULONG64 *) (base + size);
-					reg[code.op_info] = *addr;
+					//reg[code.op_info] = *addr;
+					if ((reg[code.op_info] =  fuword64((void *) addr)) == -1) {
+						goto user_ret;
+					}
 					i += 3;
 					break;
 				//case UWOP_SAVE_XMM:	//not implemented
@@ -668,7 +679,7 @@ chain:		i = 0;
 		}
 		if (info->flags == UNW_FLAG_CHAININFO) {
 			r = (rtf_t *)&(info->code[( info->cnt + 1 ) & ~1]);
-			info = (unwind_info_t *) (imgbase + r->unwnd_addr);
+			info = (unwind_info_t *) (ctl->buf + r->unwnd_addr);
 			goto chain;
 		}else if (mach == 0) {
 			//lct.Rip = *((ULONG64 *) lct.Rsp);
@@ -877,7 +888,7 @@ static int64_t fuword64(void *base)
 		RtlCopyMemory(&ret, base, sizeof(int64_t));
 		return ret;
 	} else {
-		DbgPrint("user stack fuword64 failed %p\n", base);
+		//dprintf("user stack fuword64 failed %p\n", base);
 		return -1;
 
 	}
