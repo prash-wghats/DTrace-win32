@@ -1,9 +1,0 @@
-BUILD: Computing Include file dependencies:
-BUILD: Examining c:\work\dtrace-win32\driver\dtrace directory for files to compile.
-oacr invalidate root:amd64chk /autocleanqueue
-1>Compiling c:\work\dtrace-win32\driver\dtrace *************
-1>'nmake.exe /nologo BUILDMSG=Stop. -i BUILD_PASS=PASS1 NOLINK=1 NOPASS0=1 MAKEDIR_RELATIVE_TO_BASEDIR='
-1>c:\work\dtrace-win32\driver\dtrace: TARGETPATH is ..\..\bin
-1>Linking for c:\work\dtrace-win32\driver\dtrace *************
-1>'nmake.exe /nologo BUILDMSG=Stop. -i BUILD_PASS=PASS2 LINKONLY=1 NOPASS0=1 MAKEDLL=1 MAKEDIR_RELATIVE_TO_BASEDIR='
-1>c:\work\dtrace-win32\driver\dtrace: TARGETPATH is ..\..\bin
