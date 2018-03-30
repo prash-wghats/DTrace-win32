@@ -21,6 +21,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <ntddk.h>
 #include "hook.h"
 
+static int mdl_copy(PVOID dest, PVOID src, ULONG size);
+
 VOID
 LoadIDT(
 		OUT	PIDT		pIdt )
@@ -63,7 +65,8 @@ SaveINTVector(
 #endif
 		KIRQL Irq;
 		KeRaiseIrql(HIGH_LEVEL, &Irq); 
-		memcpy( (void *)dwBase, pVector, sizeof(INT_VECTOR) );
+		//memcpy( (void *)dwBase, pVector, sizeof(INT_VECTOR) );
+		mdl_copy( (void *)dwBase, pVector, sizeof(INT_VECTOR) );
 		KeLowerIrql(Irq);
 	
 
@@ -195,6 +198,55 @@ void dtrace_hook_int(UCHAR ivec, void (*InterruptHandler)( void ), uintptr_t *pa
    	ExFreePoolWithTag(Dpc, 'Tag1');
 }
    
+static int mdl_copy(PVOID dest, PVOID src, ULONG size)
+{
+	PMDL mdl = NULL;
+	PCHAR buffer = NULL;
+	NTSTATUS ntStatus;
+	
+	mdl = IoAllocateMdl(dest, size,  FALSE, FALSE, NULL);
 
+	if (!mdl) {
+		ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+		return (0);
+	}
+
+	try {
+
+		//
+		// Probe and lock the pages of this buffer in physical memory.
+		// You can specify IoReadAccess, IoWriteAccess or IoModifyAccess
+		// Always perform this operation in a try except block.
+		//  MmProbeAndLockPages will raise an exception if it fails.
+		//
+		MmProbeAndLockPages(mdl, KernelMode, IoReadAccess);
+	} except(EXCEPTION_EXECUTE_HANDLER) {
+		ntStatus = GetExceptionCode();
+		IoFreeMdl(mdl);
+		return (0);
+	}
+	
+	//
+	// Map the physical pages described by the MDL into system space.
+	// Note: double mapping the buffer this way causes lot of
+	// system overhead for large size buffers.
+	//
+
+	buffer = MmGetSystemAddressForMdlSafe(mdl, NormalPagePriority );
+
+	if (!buffer) {
+		ntStatus = STATUS_INSUFFICIENT_RESOURCES;
+		MmUnlockPages(mdl);
+		IoFreeMdl(mdl);
+		return (0);
+	}
+
+	RtlCopyMemory(buffer, src, size);
+
+	MmUnlockPages(mdl);
+	IoFreeMdl(mdl);
+
+	return (1);
+}
 
 
